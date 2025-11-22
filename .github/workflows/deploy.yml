@@ -1,5 +1,58 @@
-# Cria o diretório necessário para os workflows do GitHub Actions
-mkdir -p .github/workflows
+name: 'Terraform Deploy Lab'
 
-# Abre o arquivo para edição
-nano .github/workflows/deploy.yml
+on:
+  push:
+    branches:
+      - main
+  # Permite execução manual
+  workflow_dispatch:
+
+jobs:
+  terraform:
+    name: 'Terraform Apply'
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write # Necessário para autenticação OIDC com AWS
+      contents: read
+
+    steps:
+      # 1. Baixa o código do repositório
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 2. Configura as credenciais AWS assumindo a Role via OIDC
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: us-east-1
+
+      # 3. Instala o Terraform no ambiente
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      # 4. Inicializa o Terraform (baixa providers)
+      - name: Terraform Init
+        id: init
+        run: terraform init
+
+      # 5. Valida a sintaxe do código
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+
+      # 6. Gera o plano de execução
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color
+        env:
+          TF_VAR_sns_email: ${{ secrets.SNS_EMAIL }}
+          TF_VAR_key_name: ${{ secrets.EC2_KEY_NAME }}
+
+      # 7. Aplica a infraestrutura automaticamente
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+        env:
+          TF_VAR_sns_email: ${{ secrets.SNS_EMAIL }}
+          TF_VAR_key_name: ${{ secrets.EC2_KEY_NAME }}
