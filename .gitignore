@@ -1,0 +1,21 @@
+# Terraform Files to Ignore
+
+# Arquivo de estado da infraestrutura (CONTÉM SENHAS E DADOS SENSÍVEIS!)
+*.tfstate
+*.tfstate.*
+
+# Backup do estado
+*tfstate.backup
+
+# Diretório de trabalho local do Terraform (plugins e módulos)
+.terraform/
+
+# Arquivos de substituição de variáveis com dados sensíveis
+# NÃO DEVE CONTER SENHAS OU CHAVES, MAS USAMOS PARA VARIAVEIS SENSIVEIS COMO O E-MAIL
+# Se você usou um arquivo .tfvars para o email, ele deve ser ignorado.
+*.tfvars
+
+# Arquivos de crash e logs
+crash.log
+log.txt
+
