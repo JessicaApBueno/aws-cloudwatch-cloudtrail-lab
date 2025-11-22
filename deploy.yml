@@ -1,0 +1,56 @@
+name: 'Terraform Deploy Lab'
+
+on:
+  push:
+    branches:
+      - main
+  # Permite execução manual
+  workflow_dispatch:
+
+jobs:
+  terraform:
+    name: 'Terraform Apply'
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write # Permite que a GitHub Action gere um token OIDC
+      contents: read
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 1. Configura as credenciais AWS via OIDC
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: us-east-1 # Use sua região
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+
+      # 2. Terraform Plan
+      # Passando variáveis via Secrets
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color
+        env:
+          TF_VAR_sns_email: ${{ secrets.SNS_EMAIL }}
+          TF_VAR_key_name: ${{ secrets.EC2_KEY_NAME }}
+      
+      # 3. Terraform Apply
+      # Passando variáveis via Secrets
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+        env:
+          TF_VAR_sns_email: ${{ secrets.SNS_EMAIL }}
+          TF_VAR_key_name: ${{ secrets.EC2_KEY_NAME }}
