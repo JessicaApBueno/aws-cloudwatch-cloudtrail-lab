@@ -19,3 +19,7 @@
 crash.log
 log.txt
 
+# Edite o arquivo (nano .gitignore) e adicione:
+# Arquivos de chaves
+*.pem
+*.ppk
