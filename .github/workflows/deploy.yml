@@ -1,0 +1,5 @@
+# Cria o diretório necessário para os workflows do GitHub Actions
+mkdir -p .github/workflows
+
+# Abre o arquivo para edição
+nano .github/workflows/deploy.yml
